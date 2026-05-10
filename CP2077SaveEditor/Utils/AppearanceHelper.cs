@@ -84,10 +84,19 @@ namespace CP2077SaveEditor
 
                 activeSave.GetAppearanceContainer().Preset.IsMale = value == AppearanceGender.Male;
 
-                var playerPuppet = (PlayerPuppetPS)activeSave.GetPSDataContainer().Entries.Where(x => x.Data is PlayerPuppetPS).FirstOrDefault().Data;
+                var playerPuppet = activeSave.GetPSDataContainer().Entries.FirstOrDefault(x => x.Data is PlayerPuppetPS)?.Data as PlayerPuppetPS;
+                if (playerPuppet == null)
+                {
+                    PlayerPuppetPSGenderAccessor.SetBodyGender(activeSave.SaveFile,
+                        value == AppearanceGender.Female ? "Female" : "Male");
+                }
+                else
+                {
+                    playerPuppet.Gender = value == AppearanceGender.Female ? "Female" : "Male";
+                }
+
                 if (value == AppearanceGender.Female)
                 {
-                    playerPuppet.Gender = "Female";
                     if (!SuppressBodyGenderPrompt)
                     {
                         SetAllValues(RedJsonSerializer.Deserialize<gameuiCharacterCustomizationPresetWrapper>(Properties.Resources.FemaleDefaultPreset, new RedJsonSerializerOptions { JsonVersion = "0.0.6" }));
@@ -95,7 +104,6 @@ namespace CP2077SaveEditor
                 }
                 else
                 {
-                    playerPuppet.Gender = "Male";
                     if (!SuppressBodyGenderPrompt)
                     {
                         SetAllValues(RedJsonSerializer.Deserialize<gameuiCharacterCustomizationPresetWrapper>(Properties.Resources.MaleDefaultPreset, new RedJsonSerializerOptions { JsonVersion = "0.0.6" }));

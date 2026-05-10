@@ -79,22 +79,29 @@ public class AppearanceHelper2
                 hs.Add(typeName);
             }
 
-            var playerPuppet = (PlayerPuppetPS?)_saveFileHelper.GetPSDataContainer()?.Entries.FirstOrDefault(x => x.Data is PlayerPuppetPS)?.Data;
+            var playerPuppet = _saveFileHelper.GetPSDataContainer()?.Entries.FirstOrDefault(x => x.Data is PlayerPuppetPS)?.Data as PlayerPuppetPS;
             if (playerPuppet == null)
             {
-                MessageBox.Show("Player data not found. Aborting.", "Notice");
-                return;
+                var result = PlayerPuppetPSGenderAccessor.SetBodyGender(_saveFileHelper.SaveFile,
+                    value == AppearanceGender.Female ? "Female" : "Male");
+                if (result != SetBodyGenderResult.Updated && result != SetBodyGenderResult.AlreadyCorrect)
+                {
+                    MessageBox.Show("Player data not found. Aborting.", "Notice");
+                    return;
+                }
+            }
+            else
+            {
+                playerPuppet.Gender = value == AppearanceGender.Female ? "Female" : "Male";
             }
 
             var oldTone = PresetWrapper.IsBrainGenderMale;
             if (value == AppearanceGender.Female)
             {
-                playerPuppet.Gender = "Female";
                 _saveFileHelper.SetAppearanceContainer(RedJsonSerializer.Deserialize<gameuiCharacterCustomizationPresetWrapper>(Properties.Resources.FemaleDefaultPreset, new RedJsonSerializerOptions { JsonVersion = "0.0.6" }));
             }
             else
             {
-                playerPuppet.Gender = "Male";
                 _saveFileHelper.SetAppearanceContainer(RedJsonSerializer.Deserialize<gameuiCharacterCustomizationPresetWrapper>(Properties.Resources.MaleDefaultPreset, new RedJsonSerializerOptions { JsonVersion = "0.0.6" }));
             }
             PresetWrapper.IsBrainGenderMale = oldTone;
